@@ -77,7 +77,7 @@ jupyter notebook ai_crop_prediction.ipynb
 
 Open `crop_product.html` in browser for AI image detection.
 
----
+
 
 ### 💼 Business Model
 
@@ -90,7 +90,7 @@ Open `crop_product.html` in browser for AI image detection.
   * Agricultural cooperatives and NGOs for farmer network data insights.
   * Data companies & research institutions for anonymized agri-data access.
 
----
+
 
 ### 🌍 Social Impact
 
@@ -99,17 +99,12 @@ Open `crop_product.html` in browser for AI image detection.
 * 📶 **Bridges the Digital Gap** — Works offline and in Hindi for better rural usability.
 * 📊 **Supports Agri-Policy & Research** by providing transparent, data-backed insights for governments and organizations.
 
----
+
 
 ### 👨‍💻 Team Members
 
-| Name             | GitHub Profile                                                 |
-| ---------------- | -------------------------------------------------------------- |
-| **Avantika Rana**       | [github.com/vantik07](https://github.com/PihuPihuPihu)             |
-| **Bhavya Joshi** | 
-| **Shaily Dhouliyan**   | 
+ **Avantika Rana**     
+ **Bhavya Joshi** 
+ **Shaily Dhouliyan**   
 
 
----
-
-Would you like me to also make a **short “1-slide summary” version** (like for a business pitch slide or PPT last slide) based on this README?

@@ -103,8 +103,10 @@ Open `crop_product.html` in browser for AI image detection.
 
 ### 👨‍💻 Team Members
 
- **Avantika Rana**     
+ **Avantika Rana**  
+ 
  **Bhavya Joshi** 
+ 
  **Shaily Dhouliyan**   
 
 

@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌾 Krishi Mitra – AI SMART KHETI's Farming Assistant</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
+body{background:linear-gradient(135deg,#2ecc71,#27ae60);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
+.chatbot-container{width:100%;max-width:400px;height:80vh;background:white;border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden}
+.chat-header{background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;padding:20px;text-align:center;position:relative}
+.language-switcher{position:absolute;top:15px;right:15px}
+.lang-btn{background:rgba(255,255,255,.2);color:#fff;border:none;padding:8px 15px;border-radius:15px;cursor:pointer;font-size:12px;backdrop-filter:blur(10px);transition:.3s}
+.lang-btn.active{background:rgba(255,255,255,.4);transform:scale(1.1)}
+.chat-messages{flex:1;padding:20px;overflow-y:auto;background:#f8f9fa}
+.message{margin:12px 0;padding:12px 16px;border-radius:18px;max-width:85%;word-wrap:break-word;line-height:1.5;animation:fadeIn .3s ease;white-space: pre-line;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.bot-message{background:#e3f2fd;border-bottom-left-radius:5px;align-self:flex-start;border:1px solid #bbdefb}
+.user-message{background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border-bottom-right-radius:5px;margin-left:auto;box-shadow:0 2px 5px rgba(52,152,219,.3)}
+.quick-buttons{display:flex;flex-wrap:wrap;gap:8px;padding:15px;background:#fff;border-top:1px solid #ecf0f1}
+.quick-btn{background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;padding:10px 16px;border-radius:20px;cursor:pointer;font-size:13px;transition:.3s;box-shadow:0 2px 5px rgba(231,76,60,.3)}
+.quick-btn:hover{transform:translateY(-2px);box-shadow:0 4px 8px rgba(231,76,60,.4)}
+.chat-input-container{display:flex;padding:15px;background:#fff;border-top:1px solid #ecf0f1}
+.chat-input{flex:1;padding:12px 20px;border:2px solid #ecf0f1;border-radius:25px;margin-right:10px;font-size:14px;outline:none;transition:.3s}
+.chat-input:focus{border-color:#3498db}
+.send-btn{background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;border:none;padding:12px 25px;border-radius:25px;cursor:pointer;transition:.3s;box-shadow:0 2px 5px rgba(46,204,113,.3)}
+.send-btn:hover{transform:scale(1.05);box-shadow:0 4px 8px rgba(46,204,113,.4)}
+.typing-indicator{display:none;padding:10px 16px;background:#e3f2fd;border-radius:18px;border-bottom-left-radius:5px;max-width:80px;margin:10px 0}
+.typing-dots{display:flex;gap:4px}
+.typing-dots span{width:8px;height:8px;background:#3498db;border-radius:50%;animation:typing 1.4s infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes typing{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+.api-status{position:absolute;top:15px;left:15px;font-size:10px;background:rgba(255,255,255,.2);padding:4px 8px;border-radius:10px;backdrop-filter:blur(10px)}
+.scrollbar::-webkit-scrollbar{width:6px}
+.scrollbar::-webkit-scrollbar-thumb{background:#3498db;border-radius:3px}
+
+/* Header text elements */
+.header-title { font-size: 1.5em; margin-bottom: 5px; }
+.header-subtitle { font-size: 0.9em; opacity: 0.9; margin-bottom: 3px; }
+.header-tagline { font-size: 0.8em; opacity: 0.8; }
+
+/* Solution styling */
+.solution-section { margin: 10px 0; }
+.solution-title { font-weight: bold; color: #2c3e50; margin-bottom: 8px; font-size: 1.1em; }
+.solution-step { margin: 8px 0; padding-left: 20px; position: relative; }
+.solution-step:before { content: "•"; position: absolute; left: 8px; color: #2ecc71; font-weight: bold; }
+.emergency-alert { background: #ffebee; border-left: 4px solid #e53935; padding: 10px; margin: 10px 0; border-radius: 4px; }
+.warning-alert { background: #fff3e0; border-left: 4px solid #ff9800; padding: 10px; margin: 10px 0; border-radius: 4px; }
+.success-alert { background: #e8f5e8; border-left: 4px solid #4caf50; padding: 10px; margin: 10px 0; border-radius: 4px; }
+
+/* Ollama status */
+.ollama-status { position: absolute; top: 15px; left: 15px; font-size: 10px; background: rgba(255,255,255,.2); padding: 4px 8px; border-radius: 10px; backdrop-filter: blur(10px); }
+.ollama-connected { background: rgba(46, 204, 113, 0.3); }
+.ollama-disconnected { background: rgba(231, 76, 60, 0.3); }
+</style>
+</head>
+<body>
+<div class="chatbot-container">
+<div class="chat-header">
+<div class="ollama-status" id="ollamaStatus">🔴 Ollama Offline</div>
+<h2 class="header-title" id="headerTitle">🌾 Krishi Mitra</h2>
+<p class="header-subtitle" id="headerSubtitle">SMART KHETI's</p>
+<p class="header-tagline" id="headerTagline">Problem-Solving Farming Expert</p>
+<div class="language-switcher">
+<button class="lang-btn active" onclick="setLanguage('en',event)">EN</button>
+<button class="lang-btn" onclick="setLanguage('hi',event)">हिंदी</button>
+</div>
+</div>
+<div class="chat-messages scrollbar" id="chatMessages">
+<div class="message bot-message">👋 Namaste! I'm Krishi Mitra - your farming problem solver!
+
+Tell me any farming issue you're facing, and I'll provide detailed step-by-step solutions! 🌱</div>
+</div>
+<div class="typing-indicator" id="typingIndicator">
+<div class="typing-dots"><span></span><span></span><span></span></div>
+</div>
+<div class="quick-buttons" id="quickButtons"></div>
+<div class="chat-input-container">
+<input type="text" class="chat-input" id="userInput" placeholder="Describe your farming problem..." onkeypress="handleKeyPress(event)">
+<button class="send-btn" onclick="sendMessage()">Send</button>
+</div>
+</div>
+
+<script>
+let currentLanguage = 'en';
+let useOllama = false;
+
+// Check if Ollama is available
+async function checkOllama() {
+    try {
+        const response = await fetch('http://localhost:11434/api/tags', {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json'}
+        });
+        
+        if (response.ok) {
+            useOllama = true;
+            document.getElementById('ollamaStatus').textContent = "🟢 Ollama Online";
+            document.getElementById('ollamaStatus').classList.add('ollama-connected');
+            document.getElementById('ollamaStatus').classList.remove('ollama-disconnected');
+            console.log("Ollama is connected!");
+        }
+    } catch (error) {
+        useOllama = false;
+        document.getElementById('ollamaStatus').textContent = "🔴 Ollama Offline";
+        document.getElementById('ollamaStatus').classList.add('ollama-disconnected');
+        document.getElementById('ollamaStatus').classList.remove('ollama-connected');
+        console.log("Ollama not available, using local knowledge base");
+    }
+}
+
+// Ollama API call
+async function callOllama(userMessage) {
+    if (!useOllama) return null;
+    
+    try {
+        const prompt = `You are Krishi Mitra - a helpful farming expert for Indian farmers. Answer in ${currentLanguage === 'en' ? 'English' : 'Hindi and English'}.
+        
+User Question: ${userMessage}
+
+Provide practical, step-by-step farming advice. Be specific and actionable. Focus on:
+- Immediate solutions
+- Long-term prevention
+- Organic methods first
+- Cost-effective approaches
+- Local Indian farming context
+
+Answer:`;
+        
+        const response = await fetch('http://localhost:11434/api/generate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                model: 'llama2',
+                prompt: prompt,
+                stream: false,
+                options: {
+                    temperature: 0.7,
+                    top_p: 0.9,
+                    num_predict: 500
+                }
+            })
+        });
+        
+        if (!response.ok) throw new Error('Ollama response error');
+        
+        const data = await response.json();
+        return data.response;
+        
+    } catch (error) {
+        console.log('Ollama error:', error);
+        useOllama = false;
+        document.getElementById('ollamaStatus').textContent = "🔴 Ollama Error";
+        return null;
+    }
+}
+
+// Bilingual header texts
+const headerTexts = {
+    en: {
+        title: "🌾 Krishi Mitra",
+        subtitle: "SMART KHETI's",
+        tagline: "Problem-Solving Farming Expert",
+        inputPlaceholder: "Describe your farming problem..."
+    },
+    hi: {
+        title: "🌾 कृषि मित्र",
+        subtitle: "स्मार्ट खेती", 
+        tagline: "समस्या-समाधान कृषि विशेषज्ञ",
+        inputPlaceholder: "अपनी कृषि समस्या बताएं..."
+    }
+};
+
+// SMART PROBLEM-SOLVING KNOWLEDGE BASE
+const farmingSolutions = {
+    en: {
+        welcome: `👋 Namaste! I'm Krishi Mitra - Your Farming Problem Solver! 🌾
+
+I specialize in diagnosing and solving real farming problems:
+
+🚨 Emergency Issues: Waterlogging, pest outbreaks, disease spread
+🌧️ Weather Problems: Drought, floods, unseasonal rains
+🌱 Crop Issues: Yellow leaves, poor growth, low yield
+🐛 Pest & Diseases: Identification and organic control
+💧 Water Management: Too much/little water, irrigation issues
+
+Just describe your problem - I'll provide step-by-step solutions!`,
+
+        quickButtons: [
+            {text: "💧 Waterlogging", query: "too much water in my field waterlogging"},
+            {text: "🍂 Yellow Leaves", query: "tomato yellow leaves problem"},
+            {text: "🐛 Pest Attack", query: "insects eating my crops"},
+            {text: "🌱 Poor Growth", query: "crops not growing properly"},
+            {text: "🌧️ Drought", query: "no rain water shortage"},
+            {text: "💰 Low Yield", query: "low production less yield"}
+        ],
+
+        // SMART PROBLEM DETECTION AND SOLUTIONS
+        problemKeywords: {
+            'waterlogging': {
+                problem: "Waterlogging/Excess Water in Field",
+                severity: "HIGH",
+                immediate: "Stop irrigation immediately and assess damage",
+                steps: [
+                    "🔄 Create emergency drainage channels to redirect excess water",
+                    "🕳️ Dig small trenches (1-2 feet deep) between crop rows",
+                    "🌾 For established crops, gently loosen soil around roots to improve aeration",
+                    "💊 Apply Trichoderma or Carbendazim to prevent root rot",
+                    "📅 Wait 3-5 days before next irrigation, monitor plant health daily"
+                ],
+                prevention: [
+                    "Install proper drainage system with 1% slope",
+                    "Raised bed cultivation for water-sensitive crops",
+                    "Add organic matter to improve soil structure",
+                    "Avoid heavy irrigation before predicted rains"
+                ],
+                warning: "Waterlogged conditions can kill crops within 48-72 hours. Act immediately!"
+            },
+
+            'yellow leaves': {
+                problem: "Yellow Leaves/Nutrient Deficiency",
+                severity: "MEDIUM",
+                immediate: "Identify pattern - old leaves or new leaves?",
+                diagnosis: [
+                    "Old Leaves Yellow: Nitrogen deficiency - Apply urea or organic nitrogen",
+                    "Young Leaves Yellow: Iron deficiency - Apply FeSO4 solution",
+                    "Yellow Between Veins: Magnesium deficiency - Apply Epsom salt",
+                    "Overall Yellowing: Overwatering or poor drainage"
+                ],
+                steps: [
+                    "🧪 Soil Test: Check pH and nutrient levels immediately",
+                    "🌿 Quick Fix: Foliar spray with NPK 19:19:19 for immediate nutrient supply",
+                    "💧 Water Management: Adjust irrigation based on soil moisture",
+                    "🌱 Long-term: Add well-decomposed compost and practice crop rotation"
+                ]
+            },
+
+            'pest attack': {
+                problem: "Pest Infestation",
+                severity: "HIGH",
+                immediate: "Identify pest type and extent of damage",
+                identification: [
+                    "🐛 Chewing Pests (caterpillars, beetles): Neem oil + soap spray",
+                    "🦟 Sucking Pests (aphids, whiteflies): Imidacloprid or neem-based insecticides",
+                    "🐌 Soil Pests (termites, cutworms): Chlorpyriphos soil application",
+                    "🕷️ Mites: Wettable sulfur or abamectin spray"
+                ],
+                steps: [
+                    "🔍 Inspection: Check undersides of leaves and soil for pests",
+                    "🌿 Organic First: Neem oil (5ml/L) + soap solution spray every 3 days",
+                    "🐞 Biological Control: Release ladybugs for aphids",
+                    "💊 Chemical (if severe): Use specific insecticides as last resort",
+                    "🛡️ Prevention: Clean cultivation, remove weeds, use yellow sticky traps"
+                ]
+            },
+
+            'drought': {
+                problem: "Water Scarcity/Drought Conditions",
+                severity: "HIGH",
+                immediate: "Implement water conservation measures immediately",
+                steps: [
+                    "💧 Water Saving: Switch to drip irrigation or use pitcher irrigation",
+                    "🌿 Mulching: Apply 3-4 inch thick organic mulch around plants",
+                    "🕒 Timing: Water early morning (4-6 AM) to reduce evaporation",
+                    "🌾 Crop Selection: Grow drought-resistant varieties for next season",
+                    "🌧️ Rainwater: Create farm ponds and water harvesting structures"
+                ],
+                emergency: [
+                    "Prioritize water for critical growth stages",
+                    "Use hydrogel polymers to retain soil moisture",
+                    "Consider partial shade for sensitive crops"
+                ]
+            },
+
+            'poor growth': {
+                problem: "Stunted Growth/Poor Plant Development",
+                severity: "MEDIUM",
+                diagnosis: [
+                    "Check Roots: Healthy roots = white and spread out",
+                    "Soil Quality: Compacted soil needs aeration",
+                    "Nutrient Balance: Test NPK levels in soil",
+                    "Water Logging: Yellow leaves + wet soil = drainage issue"
+                ],
+                steps: [
+                    "🌱 Soil Aeration: Light ploughing or fork cultivation",
+                    "🧪 Balanced Nutrition: Apply complete NPK fertilizer based on soil test",
+                    "💧 Proper Irrigation: Maintain consistent soil moisture",
+                    "🌿 Organic Matter: Add vermicompost or FYM to improve soil health",
+                    "🔍 Pest Check: Look for nematodes or soil-borne diseases"
+                ]
+            }
+        },
+
+        defaultResponse: `🔍 I understand you're facing a farming issue. Let me help you solve it!
+
+To give you the best solution, please tell me:
+
+🌱 What crop are you growing?
+🚨 Specific symptoms you're observing?
+📅 How long has this been happening?
+🌧️ Recent weather conditions in your area?
+
+Or describe your problem in detail like:
+• My tomato plants have yellow leaves and are wilting
+• There's too much water in my rice field after rains
+• Insects are eating my cabbage leaves
+• My wheat crop is not growing properly`
+
+    },
+
+    hi: {
+        welcome: `👋 नमस्ते! मैं कृषि मित्र हूं - आपका कृषि समस्या समाधानकर्ता! 🌾
+
+मैं वास्तविक कृषि समस्याओं का निदान और समाधान करने में विशेषज्ञ हूं:
+
+🚨 आपातकालीन मुद्दे: जलभराव, कीट प्रकोप, रोग फैलाव
+🌧️ मौसम संबंधी समस्याएं: सूखा, बाढ़, असमय वर्षा
+🌱 फसल मुद्दे: पीली पत्तियां, खराब विकास, कम उपज
+🐛 कीट और रोग: पहचान और जैविक नियंत्रण
+💧 जल प्रबंधन: बहुत अधिक/कम पानी, सिंचाई समस्याएं
+
+बस अपनी समस्या बताएं - मैं चरणबद्ध समाधान प्रदान करूंगा!`,
+
+        quickButtons: [
+            {text: "💧 जलभराव", query: "खेत में बहुत ज्यादा पानी जलभराव"},
+            {text: "🍂 पीली पत्तियां", query: "टमाटर पीली पत्तियां समस्या"},
+            {text: "🐛 कीट हमला", query: "कीट फसल खा रहे हैं"},
+            {text: "🌱 खराब विकास", query: "फसल ठीक से नहीं बढ़ रही"},
+            {text: "🌧️ सूखा", query: "बारिश नहीं पानी की कमी"},
+            {text: "💰 कम उपज", query: "कम उत्पादन कम उपज"}
+        ],
+
+        problemKeywords: {
+            'जलभराव': {
+                problem: "खेत में अत्यधिक पानी/जलभराव",
+                severity: "उच्च",
+                immediate: "तुरंत सिंचाई बंद करें और क्षति का आकलन करें",
+                steps: [
+                    "🔄 अतिरिक्त पानी को मोड़ने के लिए आपातकालीन जल निकासी चैनल बनाएं",
+                    "🕳️ पानी के बहिर्वाह के लिए फसल पंक्तियों के बीच छोटी खाइयां खोदें",
+                    "🌾 स्थापित फसलों के लिए, वातन में सुधार के लिए जड़ों के आसपास की मिट्टी को ढीला करें",
+                    "💊 जड़ सड़न को रोकने के लिए ट्राइकोडर्मा या कार्बेंडाजिम लगाएं",
+                    "📅 अगली सिंचाई से पहले 3-5 दिन प्रतीक्षा करें, दैनिक पौधों के स्वास्थ्य की निगरानी करें"
+                ],
+                prevention: [
+                    "1% ढलान के साथ उचित जल निकासी प्रणाली स्थापित करें",
+                    "पानी-संवेदनशील फसलों के लिए उठे हुए बेड की खेती",
+                    "मिट्टी की संरचना में सुधार के लिए जैविक पदार्थ जोड़ें",
+                    "अनुमानित बारिश से पहले भारी सिंचाई से बचें"
+                ],
+                warning: "जलभराव वाली स्थितियां 48-72 घंटों के भीतर फसलों को मार सकती हैं। तुरंत कार्रवाई करें!"
+            },
+
+            'पीली पत्तियां': {
+                problem: "पीली पत्तियां/पोषक तत्व कमी",
+                severity: "मध्यम",
+                immediate: "पैटर्न की पहचान करें - पुरानी पत्तियां या नई पत्तियां?",
+                diagnosis: [
+                    "पुरानी पत्तियां पीली: नाइट्रोजन कमी - यूरिया या जैविक नाइट्रोजन लगाएं",
+                    "युवा पत्तियां पीली: आयरन कमी - FeSO4 घोल लगाएं",
+                    "नसों के बीच पीला: मैग्नीशियम कमी - एप्सम नमक लगाएं",
+                    "समग्र पीलापन: अधिक पानी या खराब जल निकासी"
+                ],
+                steps: [
+                    "🧪 मिट्टी परीक्षण: तुरंत pH और पोषक तत्व स्तर जांचें",
+                    "🌿 त्वरित समाधान: तत्काल पोषक आपूर्ति के लिए NPK 19:19:19 के साथ पर्ण स्प्रे",
+                    "💧 जल प्रबंधन: मिट्टी की नमी के आधार पर सिंचाई समायोजित करें",
+                    "🌱 दीर्घकालिक: अच्छी तरह से विघटित कम्पोस्ट जोड़ें और फसल चक्रण का अभ्यास करें"
+                ]
+            }
+        },
+
+        defaultResponse: `🔍 मैं समझता हूं कि आपको कृषि समस्या का सामना करना पाह रहा है। मुझे इसे हल करने में मदद करने दें!
+
+आपको सर्वोत्तम समाधान देने के लिए, कृपया मुझे बताएं:
+
+🌱 आप कौन सी फसल उगा रहे हैं?
+🚨 विशिष्ट लक्षण जो आप देख रहे हैं?
+📅 कितने समय से यह हो रहा है?
+🌧️ आपके क्षेत्र में हाल के मौसम की स्थिति?
+
+या अपनी समस्या को विस्तार से बताएं जैसे:
+• मेरे टमाटर के पौधों में पीली पत्तियां हैं और मुरझा रहे हैं
+• बारिश के बाद मेरे धान के खेत में बहुत अधिक पानी है
+• कीट मेरी पत्तागोभी की पत्तियां खा रहे हैं
+• मेरी गेहूं की फसल ठीक से नहीं बढ़ रही है`
+    }
+};
+
+function setLanguage(lang, e) {
+    currentLanguage = lang;
+    
+    document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+    e.target.classList.add('active');
+    
+    updateHeaderText();
+    updateQuickButtons();
+    
+    document.getElementById('userInput').placeholder = headerTexts[lang].inputPlaceholder;
+    
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages.children.length === 1) {
+        chatMessages.innerHTML = `<div class="message bot-message">${farmingSolutions[lang].welcome}</div>`;
+    }
+}
+
+function updateHeaderText() {
+    const texts = headerTexts[currentLanguage];
+    document.getElementById('headerTitle').textContent = texts.title;
+    document.getElementById('headerSubtitle').textContent = texts.subtitle;
+    document.getElementById('headerTagline').textContent = texts.tagline;
+}
+
+function updateQuickButtons() {
+    const container = document.getElementById('quickButtons');
+    const buttons = farmingSolutions[currentLanguage].quickButtons;
+    container.innerHTML = buttons.map(btn => 
+        `<button class="quick-btn" onclick="sendQuickMessage('${btn.query}')">${btn.text}</button>`
+    ).join('');
+}
+
+function sendQuickMessage(msg) {
+    document.getElementById('userInput').value = msg;
+    sendMessage();
+}
+
+function showTypingIndicator() {
+    document.getElementById('typingIndicator').style.display = 'block';
+}
+
+function hideTypingIndicator() {
+    document.getElementById('typingIndicator').style.display = 'none';
+}
+
+function addMessage(text, sender) {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}-message`;
+    messageDiv.textContent = text;
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function handleKeyPress(e) {
+    if (e.key === 'Enter') sendMessage();
+}
+
+async function sendMessage() {
+    const input = document.getElementById('userInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    
+    addMessage(msg, 'user');
+    input.value = '';
+    showTypingIndicator();
+
+    try {
+        // First try Ollama
+        let response = await callOllama(msg);
+        
+        // If Ollama fails or not available, use local knowledge base
+        if (!response) {
+            response = detectProblemAndSolve(msg);
+        }
+        
+        addMessage(response, 'bot');
+    } catch (error) {
+        const fallbackResponse = detectProblemAndSolve(msg);
+        addMessage(fallbackResponse, 'bot');
+    } finally {
+        hideTypingIndicator();
+    }
+}
+
+function detectProblemAndSolve(userMessage) {
+    const knowledge = farmingSolutions[currentLanguage];
+    const message = userMessage.toLowerCase();
+    
+    // Check for specific problems
+    for (const [keyword, solution] of Object.entries(knowledge.problemKeywords)) {
+        if (message.includes(keyword)) {
+            return formatCleanSolution(solution, knowledge);
+        }
+    }
+    
+    // Check for common problem indicators
+    if (message.includes('water') || message.includes('पानी')) {
+        if (message.includes('too much') || message.includes('excess') || message.includes('अधिक') || message.includes('ज्यादा')) {
+            return formatCleanSolution(knowledge.problemKeywords['waterlogging'] || knowledge.problemKeywords['जलभराव'], knowledge);
+        }
+        if (message.includes('less') || message.includes('no') || message.includes('कम') || message.includes('नहीं')) {
+            return formatCleanSolution(knowledge.problemKeywords['drought'], knowledge);
+        }
+    }
+    
+    if (message.includes('yellow') || message.includes('पीली')) {
+        return formatCleanSolution(knowledge.problemKeywords['yellow leaves'] || knowledge.problemKeywords['पीली पत्तियां'], knowledge);
+    }
+    
+    if (message.includes('pest') || message.includes('insect') || message.includes('कीट')) {
+        return formatCleanSolution(knowledge.problemKeywords['pest attack'], knowledge);
+    }
+    
+    if (message.includes('not growing') || message.includes('poor growth') || message.includes('नहीं बढ़') || message.includes('खराब विकास')) {
+        return formatCleanSolution(knowledge.problemKeywords['poor growth'], knowledge);
+    }
+    
+    return knowledge.defaultResponse;
+}
+
+function formatCleanSolution(solution, knowledge) {
+    let response = `🚨 PROBLEM IDENTIFIED: ${solution.problem}\n\n`;
+    
+    if (solution.severity === "HIGH") {
+        response += `⚠️ EMERGENCY: ${solution.warning || "Immediate action required!"}\n\n`;
+    }
+    
+    response += `🎯 IMMEDIATE ACTION: ${solution.immediate}\n\n`;
+    
+    if (solution.diagnosis) {
+        response += `🔍 DIAGNOSIS GUIDE:\n`;
+        solution.diagnosis.forEach(item => {
+            response += `${item}\n`;
+        });
+        response += `\n`;
+    }
+    
+    response += `📋 STEP-BY-STEP SOLUTION:\n`;
+    solution.steps.forEach(step => {
+        response += `${step}\n`;
+    });
+    
+    if (solution.prevention) {
+        response += `\n🛡️ PREVENTION FOR FUTURE:\n`;
+        solution.prevention.forEach(item => {
+            response += `${item}\n`;
+        });
+    }
+    
+    if (solution.emergency) {
+        response += `\n🚑 EMERGENCY MEASURES:\n`;
+        solution.emergency.forEach(item => {
+            response += `${item}\n`;
+        });
+    }
+    
+    response += `\n💡 Need more specific advice? Tell me your crop type and exact symptoms!`;
+    
+    return response;
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    updateHeaderText();
+    updateQuickButtons();
+    checkOllama(); // Check if Ollama is running
+});
+</script>
+</body>
+</html>
